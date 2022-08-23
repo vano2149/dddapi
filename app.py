@@ -21,22 +21,24 @@ api = Api(app)
 
 app.secret_key = os.environ.get("SECRET_KEY")
 
-# Позже удалить строчку ниже!
 Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
 
 class Itembbb(Resource):
     def get(self, name):
         """
         Именнованный запрос возвращающий инф. о api.
-            attr
-                name -> Имя собрания
+            attr:
+                name -> Имя собрания.
+                meetingID -> Уникальный индентификатор собрания.
                 checksum -> Генерирует хеш на основе secret_key.
-                meetingID -> Уникальный индентификатор собрания! 
         """
         checksum = sha1(bytes(app.secret_key, encoding="utf8")).hexdigest()
         meetingID = str(uuid.uuid4())
+        allowStartStopRecording = "true"
+        autoStartRecording="false"
+        record="false"
         print(meetingID)
-        url = Base_URL + "?create/name=" + name + '&meetingID=' + meetingID + '&checksum=' + checksum
+        url = Base_URL + "create?"+ "allowStartStopRecording=" + allowStartStopRecording + "&autoStartRecording=" + autoStartRecording + '&meetingID=' + meetingID+ "&name="+name+ "&record="+ record + '&checksum=' + checksum
         print(url)
         return requests.get(url).content.decode(encoding="utf-8")
         #return response._content.decode(encoding='utf-8', errors='strict') requests.get(url).content.decode(encoding="utf-8")
