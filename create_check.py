@@ -1,9 +1,9 @@
 import hashlib
 
 def create_check_sum():
-    secret_key = "40sBpt2QYsMWzYmcYksx1cwlzRJlNb2r69mw7Glq4"
+    secret_key = "super_secret_key"
     h = hashlib.new('sha1')
-    h.update(b"40sBpt2QYsMWzYmcYksx1cwlzRJlNb2r69mw7Glq4")
+    h.update(b"super_secret_key")
     return print(h.hexdigest())
 
 """
