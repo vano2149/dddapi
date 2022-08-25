@@ -13,6 +13,7 @@ bigbluebutton-api-python = "*"
 python-dotenv = "*"
 xmljson = "*"
 flask-jwt = "*"
+pyjwt = "*"
 
 [dev-packages]
 

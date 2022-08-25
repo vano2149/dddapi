@@ -2,38 +2,88 @@
 Module with methods create check_sum 
 and build first url 
 """
+
 from hashlib import sha1
 import urllib.parse
 from uuid import uuid4
 import os
 
-
-def build_url(basic_url, params):
+class Url_Builder:
     """
-    Функция создания url
-    парамерты:
-        basic_url -> бызовый url
-        params -> параметры запроса.
-        url_parts -> список разделенного url-a 
-        из третьего элемента списка будем гинерить sha1() сумму.
+    Класс создающий URL-ы -> (create, join, end)
     """
-    # преобразуем 
-    url_parts = list(urllib.parse.urlsplit(basic_url))
-    url_parts[3] = urllib.parse.urlencode(params)
-    print(url_parts[3] + os.environ.get("SECRET_KEY"))
-    __check_sum = sha1(bytes(url_parts[3] + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
-    return print(urllib.parse.urlunsplit(url_parts) + "&checksum=" + __check_sum)
+    def __init__(self, basic_url:str, resourse:dict, params:dict)-> str:
+        """
+        Конструктор переменных
+        """
+        self.basic_url = basic_url
+        self.resourse = resourse
+        self.params = params
+        self.check_sum = None
+        self.meetingID = str(uuid4())
 
-basic_url = "https://bbb.epublish.ru/bigbluebutton/api/"
+    def build_url(self) -> str:
+        """
+        Функция создания url
+        парамерты:
+            basic_url -> бызовый url
+            params -> параметры запроса.
+            resourse -> ресурсы нашего запроса.
+        """
+        url = self.basic_url
+        self.params["meetingID"] = self.meetingID
 
-params = {
-    "create" : "",
-    "allowStartStopRecording": "false",
-    "autoStartRecording": "false",
-    "meetingID" : str(uuid4()),
-    "name" : "cock1",
-    "record": "false",
+        for item in self.resourse:
+            if item == "create":
+                parametrs = urllib.parse.urlencode(self.params)
+                url = "{}{}".format(url, item)
+                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
+
+        if self.params:
+            url='{}?{}&checksum={}'.format(url, parametrs, self.checksum)
+        return url
+
+
+    def build_join_url(self):
+        """
+        Функция преобразования Join -> Запроса
+        """
+        url = self.basic_url
+        parametrs = urllib.parse.urlencode(self.params)
+        for item in self.resourse:
+            if item == "join":
+                self.params["fullName"] = self.params["meetingID"]
+                self.params["password"] = self.params["attendeePW"]
+                parametrs = urllib.parse.urlencode(self.params)
+                url = "{}{}".format(url, item)
+                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
+        if self.params:
+            url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
+        return url
+
+
+def build_end_url():
+    pass
+
+
+Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
+
+resourse = {
+    "create" : "create",
+    "join" : "join",
+    "end" : "end",
+    "secret_key": "secret_key",
 }
 
-
-build_url(basic_url, params)
+params = {
+    "name": "Yeplfhjdf",
+    "meetingID": None,#str(uuid4())
+    "attendeePW":1234567,
+    "moderatorPW":7654321,
+}
+if __name__ == "__main__":
+    a = Url_Builder(Base_URL, resourse, params)
+    print('-' * 30)
+    print(a.build_url())
+    print('-' * 30)
+    print("Печать Join : ", a.build_join_url())
