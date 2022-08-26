@@ -3,10 +3,12 @@ Module with methods create check_sum
 and build first url 
 """
 
+from base64 import encode
 from hashlib import sha1
 import urllib.parse
 from uuid import uuid4
 import os
+
 
 class Url_Builder:
     """
@@ -21,6 +23,7 @@ class Url_Builder:
         self.params = params
         self.check_sum = None
         self.meetingID = str(uuid4())
+
 
     def build_url(self) -> str:
         """
@@ -43,11 +46,14 @@ class Url_Builder:
             url='{}?{}&checksum={}'.format(url, parametrs, self.checksum)
         return url
 
-
     def build_join_url(self):
         """
         Функция преобразования Join -> Запроса
+        Параметры:
+            fullname -> пока равна meetingID позже переделать
+            password -> равен attendeePW
         """
+
         url = self.basic_url
         parametrs = urllib.parse.urlencode(self.params)
         for item in self.resourse:
@@ -62,8 +68,19 @@ class Url_Builder:
         return url
 
 
-def build_end_url():
-    pass
+    def build_end_url(self):
+        """
+        Создание ссылки на
+        завершение конференции.
+        Добавить в наш create &meta_endCallbackUrl=https%3A%2F%2Fmyapp.example.com%2Fcallback%3FmeetingID%3Dtest01
+        """
+        #url = Url_Builder.build_url(self.basic_url, self.resourse, self.params)
+        #print(url)
+        for item in self.resourse:
+            if item == "end":
+                for param in self.params.items():
+                    print(param)
+        return None
 
 
 Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
@@ -77,13 +94,15 @@ resourse = {
 
 params = {
     "name": "Yeplfhjdf",
-    "meetingID": None,#str(uuid4())
     "attendeePW":1234567,
     "moderatorPW":7654321,
 }
+
 if __name__ == "__main__":
     a = Url_Builder(Base_URL, resourse, params)
-    print('-' * 30)
+    print('Ссылка на создание конф.')
     print(a.build_url())
-    print('-' * 30)
-    print("Печать Join : ", a.build_join_url())
+    print('Ссылка на подключение к конф.')
+    print(a.build_join_url())
+    print(a.build_end_url())
+

@@ -10,7 +10,7 @@ import requests
 import os
 from urllib.request import Request, urlopen
 from uuid import uuid4
-from utils import create_basic_url
+from utils.create_basic_url import Url_Builder
 
 
 
@@ -19,7 +19,7 @@ api = Api(app)
 
 app.secret_key = os.environ.get("SECRET_KEY")
 
-Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
+basic_url = "https://bbb.epublish.ru/bigbluebutton/api/"
 
 resourse = {
     "create" : "create",
@@ -37,31 +37,28 @@ params = {
 
 
 class Itembbb(Resource):
-    def get(self, name):
+    def get(self, name, basic_url, resourse, params):
         """
         Именнованный запрос возвращающий инф. о api.
         """
-        url = create_basic_url.build_url(Base_URL, resourse, params)
+        print(basic_url, resourse, params)
+        url = Url_Builder.build_url(basic_url, resourse, params)
         print(url)
-        return requests.get(url).content.decode(encoding="utf-8")
+        return {"Проверка": name} #requests.get(url).content.decode(encoding="utf-8")
         #return response._content.decode(encoding='utf-8', errors='strict') requests.get(url).content.decode(encoding="utf-8")
     def post(self):
         if requests.method == 'POST':
-            print("plfhjdf")
+            url = Url_Builder.build_join_url(basic_url, resourse, params)
+        pass
     def put(self):
         pass # response.decode().split('\r\n'):
     def delete(self):
         pass
 
 class ItembbbColection(Resource):
-    def __init__(self,*args, **kwargs):
-
-        self.name = kwargs[""]
-        self.checksum = args
-        self.meetingID = kwargs[""]
-
     def get(self):
-        return None
+        a = Url_Builder(basic_url, resourse, params)
+        return print(a.build_url.__str__())
 
 api.add_resource(Itembbb, '/item/<string:name>')
 api.add_resource(ItembbbColection, '/items/')
