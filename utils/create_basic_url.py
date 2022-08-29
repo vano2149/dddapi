@@ -14,7 +14,7 @@ class Url_Builder:
     """
     Класс создающий URL-ы -> (create, join, end)
     """
-    def __init__(self, basic_url:str, resourse:dict, params:dict)-> str:
+    def __init__(self, basic_url:str, resourse:dict, params:dict, password)-> str:
         """
         Конструктор переменных
         """
@@ -23,6 +23,8 @@ class Url_Builder:
         self.params = params
         self.check_sum = None
         self.meetingID = str(uuid4())
+        #self.data = data_base
+        self.password = password
 
 
     def build_url(self) -> str:
@@ -35,7 +37,7 @@ class Url_Builder:
         """
         url = self.basic_url
         self.params["meetingID"] = self.meetingID
-
+        self.params["password"] = self.password
         for item in self.resourse:
             if item == "create":
                 parametrs = urllib.parse.urlencode(self.params)
@@ -58,8 +60,10 @@ class Url_Builder:
         parametrs = urllib.parse.urlencode(self.params)
         for item in self.resourse:
             if item == "join":
+                #for i in list(map(lambda x: x, self.data.values())): -> Подумать над реализацией через filter
+                #    None
+                #print(i)
                 self.params["fullName"] = self.params["meetingID"]
-                self.params["password"] = self.params["attendeePW"]
                 parametrs = urllib.parse.urlencode(self.params)
                 url = "{}{}".format(url, item)
                 self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
@@ -93,6 +97,37 @@ class Url_Builder:
         return url
 
 
+data_base = {
+        "user1":{
+            "firstName" : "John",
+            "lastName" : "Dou",
+        },
+        "user2": {
+            "firstName": "Alice",
+            "lastName": "Yandex Station",
+        },
+        "user3": {
+            "firstName" : "Ivan",
+            "lastName" : "Ivanov"
+        },
+        "user4": {
+            "firstName" :"Bob",
+            "lastName" : "Bob",
+        },
+        "user5": {
+            "firstName" : "Kill",
+            "lastName" : "Real"
+        },
+        "user5": {
+            "firstName" : "Dangeon",
+            "lastName" : "Master"
+        },
+        "user6": {
+            "firstName" : "Van",
+            "lastName" : "Darkholm"
+        }
+    }
+
 Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
 
 resourse = {
@@ -108,12 +143,13 @@ params = {
     "moderatorPW":7654321,
 }
 
+password = input("Ввидите пароль для подкл: ")
+
 if __name__ == "__main__":
-    a = Url_Builder(Base_URL, resourse, params)
+    a = Url_Builder(Base_URL, resourse, params, password)
     print('Ссылка на создание конф.')
     print(a.build_url())
     print('Ссылка на подключение к конф.')
     print(a.build_join_url())
     print("Сссылка на завершения конфж.")
     print(a.build_end_url())
-
