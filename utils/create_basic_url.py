@@ -78,9 +78,19 @@ class Url_Builder:
         #print(url)
         for item in self.resourse:
             if item == "end":
-                for param in self.params.items():
-                    print(param)
-        return None
+                end = dict()
+                for k, v in self.params.items():
+                    if k == "meetingID":
+                        end[k] = v
+                    elif k == 'password':
+                        end[k] = v
+                url = self.basic_url
+                parametrs = urllib.parse.urlencode(end)
+                url = '{}{}'.format(url, item)
+                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
+        if self.params:
+            url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
+        return url
 
 
 Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
@@ -104,5 +114,6 @@ if __name__ == "__main__":
     print(a.build_url())
     print('Ссылка на подключение к конф.')
     print(a.build_join_url())
+    print("Сссылка на завершения конфж.")
     print(a.build_end_url())
 
