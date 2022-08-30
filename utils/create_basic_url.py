@@ -3,7 +3,6 @@ Module with methods create check_sum
 and build first url 
 """
 
-from base64 import encode
 from hashlib import sha1
 import urllib.parse
 from uuid import uuid4
@@ -12,19 +11,27 @@ import os
 
 class Url_Builder:
     """
-    Класс создающий URL-ы -> (create, join, end)
+    Класс создающий URL-ы -> (create, join, end)\n
+    attr:\t
+        basic_url -> наш базоавый url для подключения к api.\n
+        resourse -> словарь с administration параметрами.\n
+        parans -> словарь с  опциональными параметрами.\n
+        password -> равен moderatorPW.\n
+        name -> равно fullname.\n
     """
-    def __init__(self, basic_url:str, resourse:dict, params:dict, password)-> str:
-        """
-        Конструктор переменных
-        """
+    def __init__(self, 
+        basic_url:str, 
+        resourse:dict, 
+        params:dict, 
+        password:int, 
+        name:str)-> str:
         self.basic_url = basic_url
         self.resourse = resourse
         self.params = params
         self.check_sum = None
         self.meetingID = str(uuid4())
-        #self.data = data_base
         self.password = password
+        self.fullname = name
 
 
     def build_url(self) -> str:
@@ -53,17 +60,15 @@ class Url_Builder:
         Функция преобразования Join -> Запроса
         Параметры:
             fullname -> пока равна meetingID позже переделать
-            password -> равен attendeePW
+            password -> Пока вводим.
         """
 
         url = self.basic_url
         parametrs = urllib.parse.urlencode(self.params)
         for item in self.resourse:
             if item == "join":
-                #for i in list(map(lambda x: x, self.data.values())): -> Подумать над реализацией через filter
-                #    None
-                #print(i)
-                self.params["fullName"] = self.params["meetingID"]
+                self.params["fullName"] = self.fullname
+                print("Печатаем вот этот пароль: ",self.params["password"])
                 parametrs = urllib.parse.urlencode(self.params)
                 url = "{}{}".format(url, item)
                 self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
@@ -76,10 +81,7 @@ class Url_Builder:
         """
         Создание ссылки на
         завершение конференции.
-        Добавить в наш create &meta_endCallbackUrl=https%3A%2F%2Fmyapp.example.com%2Fcallback%3FmeetingID%3Dtest01
         """
-        #url = Url_Builder.build_url(self.basic_url, self.resourse, self.params)
-        #print(url)
         for item in self.resourse:
             if item == "end":
                 end = dict()
@@ -96,7 +98,7 @@ class Url_Builder:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
         return url
 
-
+"""
 data_base = {
         "user1":{
             "firstName" : "John",
@@ -146,10 +148,11 @@ params = {
 password = input("Ввидите пароль для подкл: ")
 
 if __name__ == "__main__":
-    a = Url_Builder(Base_URL, resourse, params, password)
+    a = Url_Builder(Base_URL, resourse, params, password, name="user6")
     print('Ссылка на создание конф.')
     print(a.build_url())
     print('Ссылка на подключение к конф.')
     print(a.build_join_url())
     print("Сссылка на завершения конфж.")
     print(a.build_end_url())
+"""

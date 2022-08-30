@@ -9,13 +9,45 @@ from flask_restful import Resource, Api, reqparse
 import requests
 import os
 from urllib.request import Request, urlopen
-from uuid import uuid4
+
 from utils.create_basic_url import Url_Builder
 
 
 
 app = Flask(__name__)
 api = Api(app)
+
+
+data_base = {
+        "user1":{
+            "firstName" : "John",
+            "lastName" : "Dou",
+        },
+        "user2": {
+            "firstName": "Alice",
+            "lastName": "Yandex Station",
+        },
+        "user3": {
+            "firstName" : "Ivan",
+            "lastName" : "Ivanov"
+        },
+        "user4": {
+            "firstName" :"Bob",
+            "lastName" : "Bob",
+        },
+        "user5": {
+            "firstName" : "Kill",
+            "lastName" : "Real"
+        },
+        "user6": {
+            "firstName" : "Dangeon",
+            "lastName" : "Master"
+        },
+        "user7": {
+            "firstName" : "Van",
+            "lastName" : "Darkholm"
+        }
+    }
 
 app.secret_key = os.environ.get("SECRET_KEY")
 
@@ -30,25 +62,33 @@ resourse = {
 
 params = {
     "name": "Ghbdtnjktu",
-    "meetingID": str(uuid4()),
     "attendeePW":321234,
     "moderatorPW":123321,
 }
 
-
 class Itembbb(Resource):
-    def get(self, name, basic_url, resourse, params):
+    def get(self, name):
         """
         Именнованный запрос возвращающий инф. о api.
+        name = name 
+        passwors = moderatorPW
         """
-        print(basic_url, resourse, params)
-        url = Url_Builder.build_url(basic_url, resourse, params)
-        print(url)
-        return {"Проверка": name} #requests.get(url).content.decode(encoding="utf-8")
+        username = next(filter(lambda x : x == name, data_base), None)
+        if username:
+            password = input("Input Password: ")
+            url1 = Url_Builder(basic_url, resourse, params, password=password, name=name)
+            print(url1.build_url())
+            print(url1.build_join_url())
+            print(url1.build_end_url())
+            data_base[name]["Create_URL"] = url1.build_url()
+            data_base[name]["Join_Url"] = url1.build_join_url()
+            return data_base[name], 200
+        return {'Error' : "User Name is invalid!"}, 404 #requests.get(url).content.decode(encoding="utf-8")
         #return response._content.decode(encoding='utf-8', errors='strict') requests.get(url).content.decode(encoding="utf-8")
     def post(self):
-        if requests.method == 'POST':
-            url = Url_Builder.build_join_url(basic_url, resourse, params)
+        """
+        Post запрос к нашему API -> передача First and second name.
+        """
         pass
     def put(self):
         pass # response.decode().split('\r\n'):
