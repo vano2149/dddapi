@@ -1,11 +1,6 @@
 """
 """
 
-name = {
-    "firstName": "Alice",
-    "lastName": "Yandex Station"
-}
-
 data_base = {
         "user1":{
             "firstName" : "John",
@@ -36,5 +31,11 @@ data_base = {
             "lastName" : "Darkholm"
         }
     }
+import itertools
+def parse_name(name):
+    if name == "user6":
+        user = [value for value in data_base.get(name).values()]
+    return print(" ".join(user))
 
-print(next(filter(lambda x : x == name, data_base.values()), None))
+
+parse_name("user6")

@@ -70,13 +70,14 @@ class Itembbb(Resource):
     def get(self, name):
         """
         Именнованный запрос возвращающий инф. о api.
-        name = name 
-        passwors = moderatorPW
+        name = name
         """
-        username = next(filter(lambda x : x == name, data_base), None)
-        if username:
-            password = input("Input Password: ")
-            url1 = Url_Builder(basic_url, resourse, params, password=password, name=name)
+        user = next(filter(lambda x : x == name, data_base), None)
+        #if user == name:
+            #name = "_".join([value for value in data_base.get(name).values()])
+            #print(name)
+        if user:
+            url1 = Url_Builder(basic_url, resourse, params, name=name)
             print(url1.build_url())
             print(url1.build_join_url())
             print(url1.build_end_url())
