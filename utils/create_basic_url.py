@@ -36,15 +36,21 @@ class UrlBuilder:
         self.password = self.moderator_pw
         self.fullname = username
         self.logout_url = logout_url
+        super(UrlBuilder, self).__init__()
 
 
-    def build_url_create(self):
+class Build_Url_Create(UrlBuilder):
+    """
+    Функция создания url
+    парамерты:
+        basic_url -> бызовый url
+        params -> параметры запроса.
+        resourse -> ресурсы нашего запроса.
+    """
+
+    def create_url(self):
         """
-        Функция создания url
-        парамерты:
-            basic_url -> бызовый url
-            params -> параметры запроса.
-            resourse -> ресурсы нашего запроса.
+        Полноценный create полноценной комнаты:
         """
         url = self.basic_url
         self.params["logoutURL"] = self.logout_url
@@ -64,14 +70,14 @@ class UrlBuilder:
             url='{}?{}&checksum={}'.format(url, parametrs, self.checksum)
         return url
 
-    def build_join_url(self):
-        """
-        Функция преобразования Join -> Запроса\n
-        Параметры:\n
-            fullname -> пока равна meetingID позже переделать\n
-            password -> Равен moderatorPW.\n
-        """
-
+class Build_Join_Url(UrlBuilder):
+    """
+    Функция преобразования Join -> Запроса\n
+    Параметры:\n
+        fullname -> пока равна meetingID позже переделать\n
+        password -> Равен moderatorPW.\n
+    """
+    def join_url(self):
         url = self.basic_url
         parametrs = urllib.parse.urlencode(self.params)
         for item in self.resourse:
@@ -88,11 +94,12 @@ class UrlBuilder:
         return url
 
 
-    def build_end_url(self):
-        """
-        Создание ссылки на
-        завершение конференции.
-        """
+class Build_End_Url(UrlBuilder):
+    """
+    Создание ссылки на
+    завершение конференции.
+    """
+    def end_url(self):
         for item in self.resourse:
             if item == "end":
                 end = {}
@@ -163,15 +170,18 @@ class Monitoring(UrlBuilder):
         Возвращает информацию по конкретной конференции.
         Вызывать через условный оператор.
         """
+        """
         response = requests.get(self.getMeetings()).content.decode().split()
+        response.reverse()
         print("Возвращает вот этот url")
         for item in response:
             if item == "<messageKey>noMeetings</messageKey>":
                 return False
-            for item in response:
+            for item in response[::-1]:
                 if item.find("<meetingID>") == 0:
-                    print(item)
-            return response
+                    break
+            return None
+        """
         
 
 
@@ -198,17 +208,18 @@ if __name__ == "__main__":
     Тестим здесь !!!
     """
     
-    a = UrlBuilder(Base_URL, resourse, params, username="user6", logout_url="https://google.com")
     print('Ссылка на создание конф.')
-    print(a.build_url_create())
+    a = Build_Url_Create(Base_URL, resourse, params, username="user6", logout_url="https://google.com")
+    print(a.create_url())
     print('Ссылка на подключение к конф.')
-    print(a.build_join_url())
+    b = Build_Join_Url(Base_URL, resourse, params, username="user6" , logout_url = "https://google.com")
+    print(b.join_url())
     print("Сссылка на завершения конфж.")
-    print(a.build_end_url())
+    c = Build_End_Url(Base_URL, resourse, params, username="user6" , logout_url = "https://google.com")
+    print(c.end_url())
     print("Ссылка на проверку на запуск опредененного совещания")
     b = Monitoring(Base_URL, resourse, params, username="user6" , logout_url = "https://google.com")
     print("-" * 30)
     print(b.isMeetingRunning())
     print(b.getMeetings())
-    print(b.getMeetingInfo())
 
