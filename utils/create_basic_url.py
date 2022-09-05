@@ -1,15 +1,16 @@
 """
-Module with methods create check_sum 
-and build first url 
+Module with methods create check_sum
+and build first url
 """
 
 from hashlib import sha1
 import urllib.parse
 from uuid import uuid4
 import os
+import requests
 
 
-class Url_Builder:
+class UrlBuilder:
     """
     Класс создающий URL-ы -> (create, join, end)\n
     attr:\t
@@ -20,18 +21,24 @@ class Url_Builder:
         name -> равно fullname.\n
     Переназвать класс Administration
     """
-    def __init__(self, basic_url:str, resourse:dict, params:dict, username:str)-> str:
+    def __init__(self,
+        basic_url:str,
+        resourse:dict,
+        params:dict,
+        username:str,
+        logout_url:str,)-> str:
         self.basic_url = basic_url
         self.resourse = resourse
         self.params = params
         self.check_sum = None
-        self.meetingID = str(uuid4())
-        self.moderatorPW = str(uuid4())
-        self.password = self.moderatorPW
+        self.meeting_id = str(uuid4())
+        self.moderator_pw = str(uuid4())
+        self.password = self.moderator_pw
         self.fullname = username
+        self.logout_url = logout_url
 
 
-    def build_url_create(self) -> str:
+    def build_url_create(self):
         """
         Функция создания url
         парамерты:
@@ -40,14 +47,18 @@ class Url_Builder:
             resourse -> ресурсы нашего запроса.
         """
         url = self.basic_url
-        self.params["meetingID"] = self.meetingID
+        self.params["logoutURL"] = self.logout_url
+        self.params["meetingID"] = self.meeting_id
         self.params["password"] = self.password
-        self.params["moderatorPW"] = self.moderatorPW
+        self.params["moderatorPW"] = self.moderator_pw
+
         for item in self.resourse:
             if item == "create":
                 parametrs = urllib.parse.urlencode(self.params)
                 url = "{}{}".format(url, item)
-                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
+                self.checksum = sha1(bytes(
+                item + parametrs + os.environ.get("SECRET_KEY"),
+                encoding="utf-8")).hexdigest()
 
         if self.params:
             url='{}?{}&checksum={}'.format(url, parametrs, self.checksum)
@@ -65,10 +76,13 @@ class Url_Builder:
         parametrs = urllib.parse.urlencode(self.params)
         for item in self.resourse:
             if item == "join":
+                del self.params["logoutURL"]
                 self.params["fullName"] = self.fullname
                 parametrs = urllib.parse.urlencode(self.params)
                 url = "{}{}".format(url, item)
-                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
+                self.checksum = sha1(bytes(
+                item + parametrs + os.environ.get("SECRET_KEY"),
+                encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
         return url
@@ -81,7 +95,7 @@ class Url_Builder:
         """
         for item in self.resourse:
             if item == "end":
-                end = dict()
+                end = {}
                 for k, v in self.params.items():
                     if k == "meetingID":
                         end[k] = v
@@ -90,36 +104,76 @@ class Url_Builder:
                 url = self.basic_url
                 parametrs = urllib.parse.urlencode(end)
                 url = '{}{}'.format(url, item)
-                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
+                self.checksum = sha1(bytes(
+                item + parametrs + os.environ.get("SECRET_KEY"),
+                encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
         return url
 
-class Monitoring(Url_Builder):
+
+    def insertDocumentation(self):
+        """
+        Функция передачи
+        документов на трансляцию.
+        """
+
+
+class Monitoring(UrlBuilder):
     """
-    Дочерний класс Мониторинга 
+    Дочерний класс Мониторинга
     """
     def isMeetingRunning(self):
         """
         Показывает состоялась ли конфиренция
-        позже перенести в другой класс "Monitoring" который будет 
+        позже перенести в другой класс "Monitoring" который будет
         наследоваться от Url_Builder.
         """
         url = self.basic_url
-        print("Печать парамса в Monitoring",self.params)
         for item in self.resourse:
             if item == "isMeetingRunning":
                 url = "{}{}".format(url,item)
-                ismeetingrunningparams = dict()
+                ismeetingrunningparams = {}
                 for k, v in self.params.items():
                     if k == "meetingID":
                         ismeetingrunningparams[k] = v
                 parametrs = urllib.parse.urlencode(ismeetingrunningparams)
-
-                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
+                self.checksum = sha1(bytes(
+                item + parametrs + os.environ.get("SECRET_KEY"),
+                encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
         return url
+
+    def getMeetings(self):
+        """
+        Возвращает все текущии конфиренции!!
+        """
+        url = self.basic_url
+        for item in self.resourse:
+            if item == "getMeetings":
+                self.checksum = sha1(bytes(
+                                    item + os.environ.get("SECRET_KEY"),
+                                    encoding="utf-8")).hexdigest()
+        url = "{}{}?checksum={}".format(url,item, self.checksum)
+        return url
+
+    def getMeetingInfo(self):
+        """
+        Возвращает информацию по конкретной конференции.
+        Вызывать через условный оператор.
+        """
+        response = requests.get(self.getMeetings()).content.decode().split()
+        print("Возвращает вот этот url")
+        for item in response:
+            if item == "<messageKey>noMeetings</messageKey>":
+                return False
+            for item in response:
+                if item.find("<meetingID>") == 0:
+                    print(item)
+            return response
+        
+
 
 
 Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
@@ -129,6 +183,7 @@ resourse = {
     "join" : "join",
     "end" : "end",
     "isMeetingRunning":"isMeetingRunning",
+    "getMeetings": "getMeetings",
 }
 
 params = {
@@ -139,7 +194,11 @@ params = {
 
 
 if __name__ == "__main__":
-    a = Url_Builder(Base_URL, resourse, params, username="user6")
+    """
+    Тестим здесь !!!
+    """
+    
+    a = UrlBuilder(Base_URL, resourse, params, username="user6", logout_url="https://google.com")
     print('Ссылка на создание конф.')
     print(a.build_url_create())
     print('Ссылка на подключение к конф.')
@@ -147,5 +206,9 @@ if __name__ == "__main__":
     print("Сссылка на завершения конфж.")
     print(a.build_end_url())
     print("Ссылка на проверку на запуск опредененного совещания")
-    b = Monitoring(Base_URL, resourse, params, username="user6")
+    b = Monitoring(Base_URL, resourse, params, username="user6" , logout_url = "https://google.com")
+    print("-" * 30)
     print(b.isMeetingRunning())
+    print(b.getMeetings())
+    print(b.getMeetingInfo())
+
