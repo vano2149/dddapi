@@ -37,5 +37,9 @@ def parse_name(name):
         user = [value for value in data_base.get(name).values()]
     return print(" ".join(user))
 
+params = {'name': 'Yeplfhjdf', 'attendeePW': 1234567, 'logoutURL': 'https://google.com', 'meetingID': '7f9aa62e-2f4f-4b43-b0fd-9b3432adde2a', 'password': '21487c27-6a44-4580-a4d0-2c1aaf1a18a1', 'moderatorPW': '21487c27-6a44-4580-a4d0-2c1aaf1a18a1'}
 
-parse_name("user6")
+params = {k : v for k, v in params.items() if k != "logoutURL"}
+
+
+print(params)

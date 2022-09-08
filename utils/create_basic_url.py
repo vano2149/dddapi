@@ -7,7 +7,7 @@ from hashlib import sha1
 import urllib.parse
 from uuid import uuid4
 import os
-import requests
+
 
 
 class UrlBuilder:
@@ -65,30 +65,57 @@ class Build_Url_Create(UrlBuilder):
                 self.checksum = sha1(bytes(
                 item + parametrs + os.environ.get("SECRET_KEY"),
                 encoding="utf-8")).hexdigest()
-
         if self.params:
             url='{}?{}&checksum={}'.format(url, parametrs, self.checksum)
         return url
 
 class Build_Join_Url(UrlBuilder):
     """
-    Функция преобразования Join -> Запроса\n
+    Класс преобразования Join -> Запроса\n
     Параметры:\n
         fullname -> пока равна meetingID позже переделать\n
         password -> Равен moderatorPW.\n
     """
+
     def join_url(self):
+        """
+        Спросить про проверку 
+        """
         url = self.basic_url
         parametrs = urllib.parse.urlencode(self.params)
         for item in self.resourse:
             if item == "join":
-                del self.params["logoutURL"]
+                self.params = {k : v for k, v in self.params.items() if k != "logoutURL"}
+                #for param in self.params.keys():
+                    #if param == "logoutURL":
+                        #del self.params[param]
                 self.params["fullName"] = self.fullname
                 parametrs = urllib.parse.urlencode(self.params)
                 url = "{}{}".format(url, item)
                 self.checksum = sha1(bytes(
                 item + parametrs + os.environ.get("SECRET_KEY"),
                 encoding="utf-8")).hexdigest()
+        if self.params:
+            url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
+        return url
+
+    def join_url_role_viewer(self):
+        '''
+        Сознание ссылки на
+        подключение с ролью viewer.
+        Спросить про проверку.
+        '''
+        url = self.basic_url
+        for item in self.resourse:
+            if item == "join":
+                for param in self.params:
+                    if param != "role":
+                        self.params = {k : v for k, v in self.params.items() if k != "moderatorPW"}
+                        self.params = {k : v for k, v in self.params.items() if k != "password"}
+                        self.params["role"] = "VIEWER"
+                parametrs = urllib.parse.urlencode(self.params)
+                url = "{}{}".format(url,item)
+                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
         return url
@@ -123,6 +150,8 @@ class Build_End_Url(UrlBuilder):
         """
         Функция передачи
         документов на трансляцию.
+        Написать проверку перед удалением!
+        
         """
 
 
@@ -135,6 +164,10 @@ class Monitoring(UrlBuilder):
         Показывает состоялась ли конфиренция
         позже перенести в другой класс "Monitoring" который будет
         наследоваться от Url_Builder.
+
+
+        Написать проверку перед удалением!
+
         """
         url = self.basic_url
         for item in self.resourse:
@@ -201,8 +234,6 @@ params = {
     "attendeePW":1234567,
 }
 
-
-
 if __name__ == "__main__":
     """
     Тестим здесь !!!
@@ -211,9 +242,13 @@ if __name__ == "__main__":
     print('Ссылка на создание конф.')
     a = Build_Url_Create(Base_URL, resourse, params, username="user6", logout_url="https://google.com")
     print(a.create_url())
+    print("-" * 30)
     print('Ссылка на подключение к конф.')
     b = Build_Join_Url(Base_URL, resourse, params, username="user6" , logout_url = "https://google.com")
     print(b.join_url())
+    print("Cсылка на подключение к конф. с ролью viewer!")
+    print(b.join_url_role_viewer())
+    print("-" * 30)
     print("Сссылка на завершения конфж.")
     c = Build_End_Url(Base_URL, resourse, params, username="user6" , logout_url = "https://google.com")
     print(c.end_url())
@@ -222,4 +257,3 @@ if __name__ == "__main__":
     print("-" * 30)
     print(b.isMeetingRunning())
     print(b.getMeetings())
-
