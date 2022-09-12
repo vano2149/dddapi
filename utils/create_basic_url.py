@@ -7,6 +7,8 @@ from hashlib import sha1
 import urllib.parse
 from uuid import uuid4
 import os
+import requests
+import xmltodict
 
 
 
@@ -86,9 +88,6 @@ class Build_Join_Url(UrlBuilder):
         for item in self.resourse:
             if item == "join":
                 self.params = {k : v for k, v in self.params.items() if k != "logoutURL"}
-                #for param in self.params.keys():
-                    #if param == "logoutURL":
-                        #del self.params[param]
                 self.params["fullName"] = self.fullname
                 parametrs = urllib.parse.urlencode(self.params)
                 url = "{}{}".format(url, item)
@@ -151,7 +150,6 @@ class Build_End_Url(UrlBuilder):
         Функция передачи
         документов на трансляцию.
         Написать проверку перед удалением!
-        
         """
 
 
@@ -196,7 +194,12 @@ class Monitoring(UrlBuilder):
                                     item + os.environ.get("SECRET_KEY"),
                                     encoding="utf-8")).hexdigest()
         url = "{}{}?checksum={}".format(url,item, self.checksum)
-        return url
+        resp = requests.get(url)
+        if resp.status_code ==200:
+            reg = requests.get(url).content
+            parsed_url = xmltodict.parse(reg)
+            return parsed_url
+        return 
 
     def getMeetingInfo(self):
         """
