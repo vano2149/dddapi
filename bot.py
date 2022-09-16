@@ -19,7 +19,8 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
 import telegram
 from telegram import ForceReply, Update, Bot, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-logging.basicConfig(format="%(asctime)s - %(name)s - %(Lavelname)s - %(message)s", level = logging.INFO)
+
+logging.basicConfig(format="%(asctime)s - %(name)s - %(Lavelname)s - %(message)s", level = logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ def main() -> None:
     application.add_handler(CommandHandler("test_button", test_button))
     application.add_handler(unknow_handler)
 
-    
+
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     application.run_polling()
