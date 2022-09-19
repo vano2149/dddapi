@@ -82,7 +82,7 @@ def main() -> None:
     application.add_handler(CommandHandler("test_button", test_button))
     application.add_handler(unknow_handler)
 
-
+#"https://github.com/d-Rickyy-b/Python-BlackJackBot"
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     application.run_polling()

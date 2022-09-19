@@ -164,7 +164,6 @@ class Build_End_Url(UrlBuilder):
         Написать проверку перед удалением!
         """
 
-
 class Monitoring(UrlBuilder):
     """
     Дочерний класс Мониторинга
@@ -209,7 +208,7 @@ class Monitoring(UrlBuilder):
                                     encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}{}?checksum={}".format(url,item, self.checksum)
-            print("Тестим вот эту функцию!", url)
+            print(url)
         resp = requests.get(url)
         if resp.status_code == 200:
             reg = requests.get(url).content
@@ -223,25 +222,30 @@ class Recordings(UrlBuilder):
     """
     Класс определяющий функции
     записи конференции!
-    НЕРАБОТАЕТ !!!
+
+    Разрешить пользователю запускать / останавливать запись. (значение по умолчанию true)
+
+    Если вы установите как allowStartStopRecording=false, 
+    так и autoStartRecording=true,
+    то будет записана вся продолжительность сеанса, и модераторы в сеансе не смогут приостановить/возобновить запись.
     """
     def getrecordings(self):
-        ''''''
+        """
+        Данная функция возвращает все записи.
+        """
+        self.resourse['getRecordings'] = 'getRecordings'
         url = self.basic_url
         for item in self.resourse:
             if item == "getRecordings":
                 url = '{}{}'.format(url,item)
-                self.params['recordID'] = self.params['meetingID']
                 print(self.params)
-                self.params = {k : v for k, v in self.params.items() if k != "moderatorPW"}
-                self.params = {k : v for k, v in self.params.items() if k != "password"}
-                self.params = {k : v for k, v in self.params.items() if k != "logoutURL"}
-                self.params = {k : v for k, v in self.params.items() if k != "name"}
-                self.params = {k : v for k, v in self.params.items() if k != "attendeePW"}
-                self.params = {k : v for k, v in self.params.items() if k != "allowStartStopRecording"}
-                print(self.params)
-                self.checksum = sha1(bytes(item + os.environ.get('SECRET_KEY'),encoding='utf-8')).hexdigest()
-                parametrs = urllib.parse.urlencode(self.params)
+                getRecordings = {}
+                for k, v in self.params.items():
+                    if k == "meetingID":
+                        getRecordings[k] = v
+                getRecordings["recordID"] = self.params['meetingID']
+                parametrs = urllib.parse.urlencode(getRecordings)
+                self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
             return url
@@ -288,6 +292,6 @@ if __name__ == "__main__":
     print(d.isMeetingRunning())
     print(d.getMeetings())
     #print(b.getDefaultXMLConf())
-    '''c = Recordings(Base_URL, resourse, params, username="user6", logout_url = "https://google.com")
+    c = Recordings(Base_URL, resourse, params, username="user6", logout_url = "https://google.com")
     print("-" * 30)
-    print(c.getrecordings())'''
+    print(c.getrecordings())
