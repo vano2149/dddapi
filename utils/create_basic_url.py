@@ -59,12 +59,14 @@ class Build_Url_Create(UrlBuilder):
         Полноценный create полноценной комнаты:
         """
         url = self.basic_url
+
         self.params["logoutURL"] = self.logout_url
         self.params["meetingID"] = self.meeting_id
         self.params["password"] = self.password
         self.params["moderatorPW"] = self.moderator_pw
         self.params['allowStartStopRecording'] = 'true'
-        self.params['preUploadedPresentationOverrideDefault'] = False
+        self.params['record'] = 'true'
+        self.params['preUploadedPresentationOverrideDefault'] = 'false'
         self.params['disabledFeatures'] = 'breakoutRooms, downloadPresentationWithAnnotations'
         for item in self.resourse:
             if item == "create":
@@ -75,13 +77,12 @@ class Build_Url_Create(UrlBuilder):
                 encoding="utf-8")).hexdigest()
         if self.params:
             url='{}?{}&checksum={}'.format(url, parametrs, self.checksum)
-            return url
+            print(url)
         if requests.get(url).status_code == 200:
             reg = requests.get(url).content
             parsed_url = xmltodict.parse(reg)
             return parsed_url
-        else:
-            None
+        return None
 
 class Build_Join_Url(UrlBuilder):
     """
@@ -89,6 +90,7 @@ class Build_Join_Url(UrlBuilder):
     Параметры:\n
         fullname -> пока равна meetingID позже переделать\n
         password -> Равен moderatorPW.\n
+        https://replit.com/
     """
 
     def join_url(self):
@@ -156,13 +158,6 @@ class Build_End_Url(UrlBuilder):
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
         return url
 
-
-    def insertDocumentation(self):
-        """
-        Функция передачи
-        документов на трансляцию.
-        Написать проверку перед удалением!
-        """
 
 class Monitoring(UrlBuilder):
     """
@@ -248,8 +243,36 @@ class Recordings(UrlBuilder):
                 self.checksum = sha1(bytes(item + parametrs + os.environ.get("SECRET_KEY"), encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
-            return url
+            print(url)
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            reg = requests.get(url).content
+            parsed_url = xmltodict.parse(reg)
+            return parsed_url
         return None
+
+    def insertDocumentation(self):
+        """
+        Функция передачи
+        документов на трансляцию.
+        Написать проверку перед удалением!
+        """
+        url = self.basic_url
+        self.resourse['insertDocument'] = 'insertDocument'
+        for item in self.resourse:
+            if item == "insertDocument":
+                url = "{}{}".format(url,item)
+                insertdocument = {}
+                for key, value in self.params.items():
+                    if key == "meetingID":
+                        insertdocument[key] = value
+                
+                parametrs = urllib.parse.urlencode(insertdocument)
+                self.checksum = sha1(bytes(item + parametrs+ os.environ.get('SECRET_KEY'), encoding="utf-8")).hexdigest()
+        if self.params:
+            url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)     
+        return url
+
 
 
 Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
@@ -295,3 +318,5 @@ if __name__ == "__main__":
     c = Recordings(Base_URL, resourse, params, username="user6", logout_url = "https://google.com")
     print("-" * 30)
     print(c.getrecordings())
+    print("-" * 30)
+    print(c.insertDocumentation())
