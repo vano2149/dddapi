@@ -9,7 +9,7 @@ from uuid import uuid4
 import os
 import requests
 import xmltodict
-
+import webbrowser
 
 
 class UrlBuilder:
@@ -110,7 +110,11 @@ class Build_Join_Url(UrlBuilder):
                 encoding="utf-8")).hexdigest()
         if self.params:
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)
-        return url
+        print(url)
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            webbrowser.open(url)
+        return None
 
     def join_url_role_viewer(self):
         '''
@@ -255,7 +259,7 @@ class Recordings(UrlBuilder):
         """
         Функция передачи
         документов на трансляцию.
-        Написать проверку перед удалением!
+        Допилить.
         """
         url = self.basic_url
         self.resourse['insertDocument'] = 'insertDocument'
@@ -273,6 +277,7 @@ class Recordings(UrlBuilder):
             url = "{}?{}&checksum={}".format(url, parametrs, self.checksum)     
         return url
 
+#https://groups.google.com/g/bigbluebutton-users
 
 
 Base_URL = "https://bbb.epublish.ru/bigbluebutton/api/"
